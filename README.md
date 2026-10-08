@@ -53,3 +53,4 @@ Pengelolaan dependensi dilakukan menggunakan **Hilt** melalui `AppModule` untuk 
 > - Pembuatan struktur awal *Data Class / Entity* (`BleDeviceEntity`, `BleDeviceHistoryEntity`).
 > - Pembuatan *boilerplate event action detail* dan komponen UI pendukung.
 > - Penyusunan *layouting Compose* dan *preview composables*.
+> - Penyusunan README.md.
