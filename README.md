@@ -52,5 +52,5 @@ Pengelolaan dependensi dilakukan menggunakan **Hilt** melalui `AppModule` untuk 
 > **Note**: Bantuan **Artificial Intelligence (AI)** dalam proyek ini digunakan secara spesifik untuk mempermudah dan mempercepat tugas-tugas pengembangan **layouting (UI Compose)** serta hal-hal yang bersifat **repetitif**, seperti:
 > - Pembuatan struktur awal *Data Class / Entity* (`BleDeviceEntity`, `BleDeviceHistoryEntity`).
 > - Pembuatan *boilerplate event action detail* dan komponen UI pendukung.
-> - Penyusunan *layouting Compose* dan *preview composables*.
+> - Peningkatan layouting compose
 > - Penyusunan README.md.
