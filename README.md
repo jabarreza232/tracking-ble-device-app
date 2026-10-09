@@ -4,13 +4,22 @@ Aplikasi Android Native modern berbasis **Jetpack Compose** untuk memindai (*sca
 
 ---
 
+## 📱 Tampilan Aplikasi (Screenshots)
+
+| Layar Utama (Live Radar & Filter) | Riwayat Perangkat (History) | Detail Perangkat |
+| :---: | :---: | :---: |
+| ![Home Screen](assets/ss_home.jpg) | ![History Screen](assets/ss_history.jpg) | ![Detail Device Screen](assets/ss_detail.jpg) |
+
+---
+
 ## 📌 Fitur Utama
 
-- 🔍 **Live BLE Scanning & Radar Animation**: Pemindaian perangkat BLE sekitar secara *real-time* dilengkapi indikator animasi radar yang responsif.
+- 🔍 **Live BLE Scanning & Radar Animation**: Pemindaian perangkat BLE sekitar secara *real-time* dilengkapi indikator animasi radar yang responsif dan titik sinyal (*blip dots*) perangkat.
 - 📊 **Signal Category & Distance Estimation**: Pengelompokan kualitas sinyal (*Sangat Kuat, Kuat, Sedang, Lemah, Sinyal Hilang*) dan kalkulasi perkiraan jarak dalam meter.
 - 💾 **Riwayat Perangkat (Local Persistence)**: Penyimpanan otomatis perangkat terdeteksi ke database lokal Room sehingga riwayat perangkat dapat diperiksa kapan saja.
 - 📱 **Detail Perangkat (Detail Device Screen)**: Informasi rinci mengenai perangkat seperti Nama, MAC Address, nilai RSSI (dBm), estimasi jarak (meter), kategori sinyal, serta timestamp terakhir terlihat.
-- 🔍 **Real-time Search & Filter**: Pencarian instan berdasarkan Nama Perangkat atau MAC Address pada tab Live Scan maupun Riwayat.
+- 🔍 **Real-time Search & Filter**: Pencarian instan dan filter fleksibel berdasarkan Kategori Sinyal dan Ambang Batas RSSI pada tab Live Scan maupun Riwayat.
+- 🌙 **Light & Dark Mode Switching**: Pengalihan tema mode terang dan gelap secara instan dari TopAppBar.
 - 🛡️ **Adaptive Bluetooth & Permission Management**: Penanganan izin lokasi dan Bluetooth runtime secara dinamis sesuai versi OS Android (Android 12+ / Android <12) serta Bottom Sheet pengaktifan Bluetooth.
 
 ---
@@ -38,7 +47,7 @@ Aplikasi ini menerapkan pola arsitektur **MVVM** untuk memisahkan logika bisnis,
 ### 2. UDF (Unidirectional Data Flow)
 Aliran data pada aplikasi bergerak secara satu arah (UDF) untuk memastikan konsistensi UI dan meminimalkan *side-effect*:
 - **State (`BleUiState`)**: `BleViewModel` memancarkan `StateFlow<BleUiState>` yang dibaca secara *read-only* oleh komponen UI.
-- **Event (`BleUiEvent`)**: Interaksi pengguna di UI (seperti `StartScan`, `StopScan`, `OnSearchQueryChanged`, `DeleteHistoryItem`) dikirimkan kembali ke ViewModel dalam bentuk *Event* terdefinisi.
+- **Event (`BleUiEvent`)**: Interaksi pengguna di UI (seperti `StartScan`, `StopScan`, `OnSearchQueryChanged`, `OnCategoryFilterSelected`, `ToggleDarkTheme`) dikirimkan kembali ke ViewModel dalam bentuk *Event* terdefinisi.
 
 ### 3. Dependency Injection (Hilt)
 Pengelolaan dependensi dilakukan menggunakan **Hilt** melalui `AppModule` untuk memfasilitasi *decoupling*, *reusability*, dan kemudahan pengujian (*testability*):
@@ -52,5 +61,4 @@ Pengelolaan dependensi dilakukan menggunakan **Hilt** melalui `AppModule` untuk 
 > **Note**: Bantuan **Artificial Intelligence (AI)** dalam proyek ini digunakan secara spesifik untuk mempermudah dan mempercepat tugas-tugas pengembangan **layouting (UI Compose)** serta hal-hal yang bersifat **repetitif**, seperti:
 > - Pembuatan struktur awal *Data Class / Entity* (`BleDeviceEntity`, `BleDeviceHistoryEntity`).
 > - Pembuatan *boilerplate event action detail* dan komponen UI pendukung.
-> - Peningkatan layouting compose
-> - Penyusunan README.md.
+> - Peningkatan layouting Compose dan penyusunan dokumentasi `README.md`.
