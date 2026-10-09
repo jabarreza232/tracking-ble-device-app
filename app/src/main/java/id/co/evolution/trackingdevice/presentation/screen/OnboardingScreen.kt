@@ -1,7 +1,9 @@
 package id.co.evolution.trackingdevice.presentation.screen
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,10 +44,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import id.co.evolution.trackingdevice.R
 import id.co.evolution.trackingdevice.ui.theme.TrackingDeviceTheme
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -54,24 +58,24 @@ import kotlin.math.absoluteValue
 data class OnboardingPage(
     val title: String,
     val description: String,
-    val icon: ImageVector,
+    @DrawableRes val imageRes: Int
 )
 
 val onboardingPages = listOf(
     OnboardingPage(
         title = "Pemindaian BLE Real-Time",
         description = "Deteksi perangkat Bluetooth Low Energy di sekitar Anda secara real-time dengan visualisasi radar dan pembaruan otomatis.",
-        icon = Icons.Default.Bluetooth,
+        imageRes = R.drawable.ilustrasi_ble_1,
     ),
     OnboardingPage(
         title = "Monitor Kekuatan Sinyal",
         description = "Lacak RSSI dan estimasi jarak perangkat dengan kategori sinyal dari sangat kuat hingga lemah secara akurat.",
-        icon = Icons.Default.SignalCellularAlt,
+        imageRes = R.drawable.ilustrasi_ble_2,
     ),
     OnboardingPage(
         title = "Riwayat Perangkat Tersimpan",
         description = "Simpan dan kelola riwayat semua perangkat BLE yang pernah terdeteksi dengan timestamp lengkap.",
-        icon = Icons.Default.History,
+        imageRes = R.drawable.ilustrasi_ble_3,
     ),
 )
 
@@ -280,36 +284,13 @@ fun OnboardingPageItem(
         verticalArrangement = Arrangement.Center,
     ) {
         // Animated Card Container for Icon
-        Card(
+        Image(
+            painter = painterResource(id = page.imageRes),
+            contentDescription = page.title,
             modifier = Modifier
-                .size(160.dp),
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 8.dp
-            )
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = page.icon,
-                    contentDescription = page.title,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .graphicsLayer {
-                            // Icon scales independently for emphasis
-                            val iconScale = 1f + (1f - pageOffset.absoluteValue.coerceIn(0f, 1f)) * 0.1f
-                            scaleX = iconScale
-                            scaleY = iconScale
-                        },
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
+                .fillMaxWidth()
+                .height(250.dp) // Sesuaikan tinggi ilustrasi
+                .padding(16.dp))
 
         Spacer(modifier = Modifier.height(48.dp))
 
