@@ -10,16 +10,19 @@ data class BleUiState(
     val historyDevices: List<BleDeviceHistoryEntity> = emptyList(), // Data tersimpan di Room DB
     val isScanning: Boolean = false,
     val errorMessage: String? = null,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val selectedCategory: SignalCategory? = null,
+    val minRssiFilter: Int? = null,
+    val isDarkTheme: Boolean = false
 ) {
     // Properti bantuan untuk kompatibilitas jika ada screen lain yang memakai `devices`
     val devices: List<BleDeviceEntity>
         get() = liveDevices
 
-    // Live devices yang sudah difilter berdasarkan query dan diurutkan sinyal terkuat
+    // Live devices yang sudah difilter berdasarkan query, kategori sinyal, rssi, dan diurutkan sinyal terkuat
     val filteredLiveDevices: List<BleDeviceEntity>
         get() {
-            val list = if (searchQuery.isBlank()) {
+            var list = if (searchQuery.isBlank()) {
                 liveDevices
             } else {
                 liveDevices.filter {
@@ -27,23 +30,27 @@ data class BleUiState(
                             it.macAddress.contains(searchQuery, ignoreCase = true)
                 }
             }
+
+            if (selectedCategory != null) {
+                list = list.filter { it.signalCategory == selectedCategory }
+            }
+
+            if (minRssiFilter != null) {
+                list = list.filter { it.rawRssi >= minRssiFilter }
+            }
+
             return list.sortedByDescending { it.rawRssi }
         }
-    val signalCategoryList:List<SignalCategory>
+
+    val signalCategoryList: List<SignalCategory>
         get() {
-            val list = if (searchQuery.isBlank()) {
-                liveDevices
-            } else {
-                liveDevices.filter {
-                    true
-                }
-            }
-            return list.sortedByDescending { it.rawRssi }.map { it.signalCategory }.distinct()
+            return liveDevices.map { it.signalCategory }.distinct().sortedBy { it.ordinal }
         }
-    // History devices yang sudah difilter berdasarkan query
+
+    // History devices yang sudah difilter berdasarkan query, kategori sinyal, dan rssi
     val filteredHistoryDevices: List<BleDeviceHistoryEntity>
         get() {
-            val list = if (searchQuery.isBlank()) {
+            var list = if (searchQuery.isBlank()) {
                 historyDevices
             } else {
                 historyDevices.filter {
@@ -51,6 +58,15 @@ data class BleUiState(
                             it.macAddress.contains(searchQuery, ignoreCase = true)
                 }
             }
+
+            if (selectedCategory != null) {
+                list = list.filter { SignalCategory.fromRssi(it.rawRssi) == selectedCategory }
+            }
+
+            if (minRssiFilter != null) {
+                list = list.filter { it.rawRssi >= minRssiFilter }
+            }
+
             return list.sortedByDescending { it.rawRssi }
         }
 }

@@ -43,8 +43,7 @@ fun RootNavigationGraph(
                     type = NavType.StringType
                 }
             )
-        ) { backStackEntry ->
-            val macAddress = backStackEntry.arguments?.getString("macAddress").orEmpty()
+        ) {
 
             val device = navController.previousBackStackEntry
                 ?.savedStateHandle

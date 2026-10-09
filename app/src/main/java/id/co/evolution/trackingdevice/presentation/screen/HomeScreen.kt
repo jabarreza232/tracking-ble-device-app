@@ -5,11 +5,10 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,19 +21,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Radar
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +46,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -56,27 +53,48 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import id.co.evolution.trackingdevice.R
 import id.co.evolution.trackingdevice.component.EnableBluetoothBottomSheet
 import id.co.evolution.trackingdevice.domain.model.BleDeviceEntity
-import id.co.evolution.trackingdevice.domain.model.SignalCategory
-import id.co.evolution.trackingdevice.presentation.component.HistoryDeviceCard
+import id.co.evolution.trackingdevice.presentation.component.FilterSection
 import id.co.evolution.trackingdevice.presentation.component.LiveDeviceCard
 import id.co.evolution.trackingdevice.presentation.component.RadarAnimationView
 import id.co.evolution.trackingdevice.presentation.component.SearchBar
-import id.co.evolution.trackingdevice.presentation.component.SignalCategoryItem
 import id.co.evolution.trackingdevice.presentation.state.BleUiEvent
 import id.co.evolution.trackingdevice.presentation.state.BleUiState
 import id.co.evolution.trackingdevice.presentation.viewmodel.BleViewModel
 import id.co.evolution.trackingdevice.ui.theme.TrackingDeviceTheme
 
+/**
+ * Type-Safe representation for Home screen tabs.
+ */
+enum class HomeTab(
+    val index: Int,
+    @get:StringRes val titleResId: Int,
+    val icon: ImageVector
+) {
+    HOME(0, R.string.home, Icons.Default.Radar),
+    HISTORY(1, R.string.history, Icons.Default.History);
+
+    companion object {
+        fun fromIndex(index: Int): HomeTab = entries.find { it.index == index } ?: HOME
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: BleViewModel = hiltViewModel(),
+    viewModel: BleViewModel = run {
+        val activity = LocalContext.current as? ComponentActivity
+        if (activity != null) hiltViewModel(activity) else hiltViewModel()
+    },
     onNavigateDetailDevice: (device: BleDeviceEntity) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -92,6 +110,8 @@ fun HomeScreen(
         }
     }
 
+    val permissionErrorMessage = stringResource(R.string.permission_required)
+
     // Launcher untuk Izin Bluetooth
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -104,7 +124,7 @@ fun HomeScreen(
                 viewModel.onEvent(BleUiEvent.StartScan)
             }
         } else {
-            viewModel.onEvent(BleUiEvent.OnError("Izin Bluetooth / Lokasi diperlukan untuk scan."))
+            viewModel.onEvent(BleUiEvent.OnError(permissionErrorMessage))
         }
     }
 
@@ -152,28 +172,34 @@ fun HomeContent(
     showBluetoothSheet: Boolean,
     onDismissSheet: () -> Unit,
     onEnableBluetoothClick: () -> Unit,
-    onNavigateDetailDevice: (device: BleDeviceEntity)-> Unit
+    onNavigateDetailDevice: (device: BleDeviceEntity) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     var showClearConfirmDialog by remember { mutableStateOf(false) }
 
-    val tabs = listOf("Home", "Riwayat")
+    val currentTab = HomeTab.fromIndex(state.currentTab)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "BLE Tracking Device",
+                        text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.Bold
                     )
                 },
                 actions = {
-                    if (state.currentTab == 1 && state.historyDevices.isNotEmpty()) {
+                    IconButton(onClick = { onEvent(BleUiEvent.ToggleDarkTheme) }) {
+                        Icon(
+                            imageVector = if (state.isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = stringResource(R.string.switch_theme)
+                        )
+                    }
+                    if (currentTab == HomeTab.HISTORY && state.historyDevices.isNotEmpty()) {
                         IconButton(onClick = { showClearConfirmDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "Hapus Semua Riwayat",
+                                contentDescription = stringResource(R.string.delete_history_all),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -183,20 +209,20 @@ fun HomeContent(
         },
         floatingActionButton = {
             // FAB hanya ditampilkan pada Tab Home
-            if (state.currentTab == 0) {
+            if (currentTab == HomeTab.HOME) {
                 if (state.isScanning) {
                     ExtendedFloatingActionButton(
                         onClick = onStopScanClick,
-                        icon = { Icon(Icons.Default.Stop, contentDescription = "Stop") },
-                        text = { Text("Hentikan Scan") },
+                        icon = { Icon(Icons.Default.Stop, contentDescription = stringResource(R.string.stop_scan)) },
+                        text = { Text(stringResource(R.string.stop_scan)) },
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 } else {
                     ExtendedFloatingActionButton(
                         onClick = onStartScanClick,
-                        icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Start") },
-                        text = { Text("Mulai Scan") },
+                        icon = { Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.start_scan)) },
+                        text = { Text(stringResource(R.string.start_scan)) },
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -209,28 +235,30 @@ fun HomeContent(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Tab Menu: Home & Riwayat
+            // Tab Menu: Type-Safe Tab Enumeration
             PrimaryTabRow(
-                selectedTabIndex = state.currentTab,
+                selectedTabIndex = currentTab.index,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                tabs.forEachIndexed { index, title ->
+                HomeTab.entries.forEach { tab ->
+                    val isSelected = currentTab == tab
+                    val count = if (tab == HomeTab.HOME) state.liveDevices.size else state.historyDevices.size
+                    val title = stringResource(tab.titleResId)
+
                     Tab(
-                        selected = state.currentTab == index,
-                        onClick = { onEvent(BleUiEvent.OnTabChanged(index)) },
+                        selected = isSelected,
+                        onClick = { onEvent(BleUiEvent.OnTabChanged(tab.index)) },
                         text = {
                             Text(
-                                text = if (index == 0) "$title (${state.liveDevices.size})"
-                                else "$title (${state.historyDevices.size})",
-                                fontWeight = if (state.currentTab == index) FontWeight.Bold else FontWeight.Normal
+                                text = stringResource(R.string.tab_title_with_count, title, count),
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
                         },
                         icon = {
-                            if (index == 0) {
-                                Icon(Icons.Default.Radar, contentDescription = "Home Radar")
-                            } else {
-                                Icon(Icons.Default.History, contentDescription = "Riwayat")
-                            }
+                            Icon(
+                                imageVector = tab.icon,
+                                contentDescription = title
+                            )
                         }
                     )
                 }
@@ -247,13 +275,13 @@ fun HomeContent(
             }
 
             // Konten Berdasarkan Tab
-            when (state.currentTab) {
-                0 -> HomeContent(
+            when (currentTab) {
+                HomeTab.HOME -> HomeContent(
                     state = state,
                     onEvent = onEvent,
                     onNavigateDetailDevice = onNavigateDetailDevice
                 )
-                1 -> HistoryDeviceScreen(
+                HomeTab.HISTORY -> HistoryDeviceScreen(
                     state = state,
                     onEvent = onEvent,
                     onNavigateDetailDevice = onNavigateDetailDevice
@@ -266,8 +294,8 @@ fun HomeContent(
     if (showClearConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showClearConfirmDialog = false },
-            title = { Text("Hapus Semua Riwayat") },
-            text = { Text("Apakah Anda yakin ingin menghapus seluruh riwayat perangkat yang terdeteksi?") },
+            title = { Text(stringResource(R.string.delete_history_all)) },
+            text = { Text(stringResource(R.string.message_history)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -275,12 +303,12 @@ fun HomeContent(
                         showClearConfirmDialog = false
                     }
                 ) {
-                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearConfirmDialog = false }) {
-                    Text("Batal")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -300,16 +328,14 @@ fun HomeContent(
 fun HomeContent(
     state: BleUiState,
     onEvent: (BleUiEvent) -> Unit,
-    onNavigateDetailDevice:(device: BleDeviceEntity)-> Unit
+    onNavigateDetailDevice: (device: BleDeviceEntity) -> Unit
 ) {
     val filteredList = state.filteredLiveDevices
-    val categoryList = state.signalCategoryList
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 1. Radar Animation Section
         item {
             Column(
                 modifier = Modifier
@@ -319,46 +345,42 @@ fun HomeContent(
             ) {
                 RadarAnimationView(
                     modifier = Modifier.size(190.dp),
-                    isScanning = state.isScanning
+                    isScanning = state.isScanning,
+                    devices = filteredList
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (state.isScanning) "Memindai perangkat sekitar..." else "Scan dijeda",
+                    text = if (state.isScanning) stringResource(R.string.scanning_in_progress) else stringResource(R.string.scan_paused),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (state.isScanning) MaterialTheme.colorScheme.primary else Color.Gray
                 )
 
                 Text(
-                    text = "Live scanning (tidak disimpan ke lokal)",
+                    text = stringResource(R.string.live_scanning_not_saved),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
         }
 
-        // 2. Search Bar
         item {
             SearchBar(
                 query = state.searchQuery,
                 onQueryChange = { onEvent(BleUiEvent.OnSearchQueryChanged(it)) },
-                placeholderText = "Cari perangkat live (nama / MAC)..."
+                placeholderText = stringResource(R.string.search_placeholder_live)
             )
         }
+
         item {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp) // Sesuaikan dengan padding LazyColumn Anda
-            ) {
-                items(categoryList, key = { it.name }) { category ->
-                    SignalCategoryItem(category)
-                }
-            }
+            FilterSection(
+                state = state,
+                onEvent = onEvent
+            )
         }
-        // 3. Status Urutan Otomatis Berdasarkan Sinyal Terkuat
+
         item {
             Row(
                 modifier = Modifier
@@ -368,12 +390,12 @@ fun HomeContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Perangkat Terdeteksi (${filteredList.size})",
+                    text = stringResource(R.string.detected_devices_count, filteredList.size),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Diurutkan sinyal terkuat",
+                    text = stringResource(R.string.sorted_by_signal),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -389,7 +411,7 @@ fun HomeContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (state.isScanning) "Belum ada perangkat terdeteksi..." else "Tekan 'Mulai Scan' untuk mencari",
+                        text = if (state.isScanning) stringResource(R.string.no_devices_detected) else stringResource(R.string.press_start_scan),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -397,7 +419,6 @@ fun HomeContent(
             }
         } else {
             items(filteredList, key = { it.macAddress }) { device ->
-
                 LiveDeviceCard(
                     device = device,
                     onSaveClick = {
@@ -412,24 +433,24 @@ fun HomeContent(
             Spacer(modifier = Modifier.height(80.dp))
         }
     }
-
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomeContentPreview() {
-
     TrackingDeviceTheme {
         HomeContent(
-            BleUiState(currentTab = 0),
-            {  },
-            {  },
-            {  },
-            false,
-            {  },
-            {  },
-            {  }
-
+            BleUiState(
+                currentTab = 0,
+                isScanning = true,
+                liveDevices = listOf(
+                    BleDeviceEntity("42:FE:8A:1B:90:02", "SmartWatch Pro", -30, 1.2),
+                    BleDeviceEntity("11:22:33:44:55:66", "Headphones", -60, 3.8),
+                    BleDeviceEntity("AA:BB:CC:DD:EE:FF", "Beacon Tag", -85, 8.5)
+                )
+            ),
+            onEvent = { },
+            onNavigateDetailDevice = { }
         )
     }
 }

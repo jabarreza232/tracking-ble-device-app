@@ -1,6 +1,7 @@
 package id.co.evolution.trackingdevice.presentation.state
 
 import id.co.evolution.trackingdevice.domain.model.BleDeviceEntity
+import id.co.evolution.trackingdevice.domain.model.SignalCategory
 
 sealed class BleUiEvent {
     data object StartScan : BleUiEvent()
@@ -12,4 +13,8 @@ sealed class BleUiEvent {
     data object SaveAllLiveDevicesToHistory : BleUiEvent()
     data object ClearHistory : BleUiEvent()
     data class DeleteHistoryItem(val id: Long) : BleUiEvent()
+    data class OnCategoryFilterSelected(val category: SignalCategory?) : BleUiEvent()
+    data class OnMinRssiFilterSelected(val minRssi: Int?) : BleUiEvent()
+    data object ToggleDarkTheme : BleUiEvent()
+    data object ResetFilters : BleUiEvent()
 }

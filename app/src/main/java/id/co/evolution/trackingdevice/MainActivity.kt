@@ -18,19 +18,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import id.co.evolution.trackingdevice.navigation.RootNavigationGraph
+import id.co.evolution.trackingdevice.presentation.viewmodel.BleViewModel
 import id.co.evolution.trackingdevice.presentation.viewmodel.MainViewModel
 import id.co.evolution.trackingdevice.ui.theme.TrackingDeviceTheme
-import kotlin.getValue
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
+    private val bleViewModel: BleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TrackingDeviceTheme {
+            val bleUiState by bleViewModel.uiState.collectAsStateWithLifecycle()
+
+            TrackingDeviceTheme(darkTheme = bleUiState.isDarkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
                     val isOnboardingCompleted by mainViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()

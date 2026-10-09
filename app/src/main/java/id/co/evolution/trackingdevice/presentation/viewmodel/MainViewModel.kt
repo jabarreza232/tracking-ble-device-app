@@ -13,7 +13,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val userPreferences: UserPreferences): ViewModel(){
     val isOnboardingCompleted = userPreferences.isOnboardingCompleted.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = false
     )
 

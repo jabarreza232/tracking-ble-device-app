@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.co.evolution.trackingdevice.domain.model.BleDeviceEntity
+import id.co.evolution.trackingdevice.presentation.component.FilterSection
 import id.co.evolution.trackingdevice.presentation.component.HistoryDeviceCard
 import id.co.evolution.trackingdevice.presentation.component.SearchBar
 import id.co.evolution.trackingdevice.presentation.state.BleUiEvent
@@ -41,6 +42,13 @@ fun HistoryDeviceScreen(
                 query = state.searchQuery,
                 onQueryChange = { onEvent(BleUiEvent.OnSearchQueryChanged(it)) },
                 placeholderText = "Cari di riwayat (nama / MAC)..."
+            )
+        }
+
+        item {
+            FilterSection(
+                state = state,
+                onEvent = onEvent
             )
         }
 

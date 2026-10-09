@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">TrackingDevice</string>
+    <string name="stop_scan">Hentikan Scan</string>
+    <string name="start_scan">Mulai Scan</string>
+    <string name="home">Home</string>
+    <string name="history">Riwayat</string>
+    <string name="delete_history_all">Hapus Semua Riwayat</string>
+    <string name="delete">Hapus</string>
+    <string name="cancel">Batal</string>
+    <string name="message_history">Apakah Anda yakin ingin menghapus seluruh riwayat perangkat yang terdeteksi?</string>
+    <string name="permission_required">Izin Bluetooth / Lokasi diperlukan untuk scan.</string>
+    <string name="switch_theme">Switch Mode Tema</string>
+    <string name="scanning_in_progress">Memindai perangkat sekitar&#8230;</string>
+    <string name="scan_paused">Scan dijeda</string>
+    <string name="live_scanning_not_saved">Live scanning (tidak disimpan ke lokal)</string>
+    <string name="search_placeholder_live">Cari perangkat live (nama / MAC)&#8230;</string>
+    <string name="detected_devices_count">Perangkat Terdeteksi (%1$d)</string>
+    <string name="sorted_by_signal">Diurutkan sinyal terkuat</string>
+    <string name="no_devices_detected">Belum ada perangkat terdeteksi&#8230;</string>
+    <string name="press_start_scan">Tekan \'Mulai Scan\' untuk mencari</string>
+    <string name="tab_title_with_count">%1$s (%2$d)</string>
+    <string name="home_radar">Home Radar</string>
 </resources>

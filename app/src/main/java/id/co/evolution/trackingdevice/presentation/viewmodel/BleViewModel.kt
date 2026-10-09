@@ -38,7 +38,6 @@ class BleViewModel @Inject constructor(
 
     private val scanner = bluetoothAdapter?.bluetoothLeScanner
 
-    // In-memory cache for live devices (tidak disimpan ke lokal / DB)
     private val liveDevicesMap = ConcurrentHashMap<String, BleDeviceEntity>()
     private val _liveDevices = MutableStateFlow<List<BleDeviceEntity>>(emptyList())
     private val updateChannel = Channel<Unit>(Channel.CONFLATED)
@@ -130,6 +129,18 @@ class BleViewModel @Inject constructor(
                 viewModelScope.launch {
                     repository.deleteHistoryById(event.id)
                 }
+            }
+            is BleUiEvent.OnCategoryFilterSelected -> {
+                _uiState.update { it.copy(selectedCategory = event.category) }
+            }
+            is BleUiEvent.OnMinRssiFilterSelected -> {
+                _uiState.update { it.copy(minRssiFilter = event.minRssi) }
+            }
+            is BleUiEvent.ToggleDarkTheme -> {
+                _uiState.update { it.copy(isDarkTheme = !it.isDarkTheme) }
+            }
+            is BleUiEvent.ResetFilters -> {
+                _uiState.update { it.copy(selectedCategory = null, minRssiFilter = null, searchQuery = "") }
             }
         }
     }
